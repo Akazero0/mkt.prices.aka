@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#176b53">
+<title>PrecioScan Chile</title>
+<style>
+:root{--green:#176b53;--mint:#e7f4ee;--ink:#182521;--muted:#62716b;--line:#dce5e0;--bg:#f5f8f6;--white:#fff;--orange:#b95d16}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{background:var(--green);color:white;padding:20px 18px 18px;position:sticky;top:0;z-index:3}
+header .top{display:flex;align-items:center;gap:10px} .logo{font-size:28px} h1{font-size:21px;margin:0} header p{margin:7px 0 0;font-size:13px;opacity:.9}
+main{max-width:760px;margin:auto;padding:14px 14px 90px}
+.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
+.nav button{border:1px solid var(--line);background:white;border-radius:12px;padding:11px 5px;font-weight:650;color:var(--ink)}
+.nav button.active{background:var(--mint);border-color:var(--green);color:var(--green)}
+.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #18372b08}
+h2{font-size:18px;margin:0 0 12px} h3{font-size:15px;margin:0 0 8px}
+label{display:block;font-size:13px;font-weight:650;color:var(--muted);margin:10px 0 5px}
+input,select,textarea{width:100%;font:inherit;border:1px solid #cbd8d1;border-radius:10px;padding:12px;background:white;color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button.primary,button.secondary,button.danger{border:0;border-radius:11px;padding:12px 14px;font:inherit;font-weight:700;cursor:pointer}
+button.primary{background:var(--green);color:white;width:100%;margin-top:12px}
+button.secondary{background:var(--mint);color:var(--green);margin-top:8px}
+button.danger{background:#fff0ed;color:#9d3426;margin-top:8px}
+button:disabled{opacity:.5}
+.small{font-size:12px;color:var(--muted);line-height:1.45}
+.status{padding:10px 12px;border-radius:10px;background:#f1f6f3;font-size:13px;margin-top:10px;white-space:pre-wrap}
+.hidden{display:none!important}
+.product-head{display:flex;gap:12px;align-items:center}
+.photo{width:76px;height:76px;border-radius:12px;background:#edf2ef;object-fit:cover;flex-shrink:0}
+.pname{font-weight:750;font-size:16px}.meta{font-size:12px;color:var(--muted);margin-top:4px}
+.price-card{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:9px}
+.price-top{display:flex;justify-content:space-between;gap:10px}.price{font-weight:800;font-size:19px;color:var(--green)}
+.pill{font-size:11px;padding:4px 7px;border-radius:999px;background:var(--mint);color:var(--green);height:max-content}
+.list-item{padding:12px 0;border-bottom:1px solid var(--line)}.list-item:last-child{border-bottom:0}
+a{color:var(--green);font-weight:650}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:14px}
+#reader{width:100%;overflow:hidden;border-radius:12px;margin-top:10px}
+video{max-width:100%}
+.notice{border-left:3px solid var(--orange);padding:8px 10px;background:#fff8f0;font-size:12px;color:#744016;border-radius:0 8px 8px 0}
+@media(min-width:600px){main{padding-top:20px}.nav button{padding:13px}}
+</style>
+</head>
+<body>
+<header><div class="top"><div class="logo">🛒</div><div><h1>PrecioScan Chile</h1><div style="font-size:12px;opacity:.9">Escanea · compara · ahorra</div></div></div><p>Prototipo de comparación de precios para compras en Chile</p></header>
+<main>
+<div class="nav">
+<button class="active" data-tab="scan">📷 Producto</button>
+<button data-tab="compare">💸 Comparar</button>
+<button data-tab="history">🧾 Historial</button>
+</div>
+
+<section id="tab-scan">
+<div class="panel">
+<h2>Identificar producto</h2>
+<label for="barcode">Código de barras (EAN/UPC)</label>
+<div class="row"><input id="barcode" inputmode="numeric" placeholder="Ej. 7801234567890"><button class="secondary" style="margin:0" id="lookupBtn">Buscar código</button></div>
+<div class="row">
+<button class="primary" id="startScan" style="margin-top:10px">Abrir escáner</button>
+<button class="secondary" id="stopScan" style="margin-top:10px" disabled>Detener</button>
+</div>
+<div id="reader" class="hidden"></div>
+<div id="scanStatus" class="status">En iPhone, permite el acceso a la cámara cuando Safari lo solicite. Si el escáner no es compatible, escribe el código o usa la búsqueda por foto.</div>
+<label for="photoInput">Fotografía del envase</label>
+<input type="file" id="photoInput" accept="image/*" capture="environment">
+<div class="small">La foto se usa como referencia visual en este prototipo. No hay reconocimiento automático de texto integrado todavía; puedes completar el nombre y la marca manualmente.</div>
+<div id="photoPreviewWrap" class="hidden" style="margin-top:10px"><img id="photoPreview" class="photo" alt="Foto del producto"><button class="secondary" id="clearPhoto">Quitar foto</button></div>
+</div>
+
+<div class="panel">
+<h2>Datos del producto</h2>
+<label for="productName">Nombre del producto *</label><input id="productName" placeholder="Ej. Leche semidescremada">
+<div class="row">
+<div><label for="brand">Marca</label><input id="brand" placeholder="Marca"></div>
+<div><label for="size">Contenido</label><input id="size" placeholder="Ej. 1 L, 500 g"></div>
+</div>
+<label for="category">Categoría</label><select id="category"><option>Alimentos</option><option>Lácteos</option><option>Aseo del hogar</option><option>Cuidado personal</option><option>Bebidas</option><option>Mascotas</option><option>Otro</option></select>
+<label for="notes">Notas (opcional)</label><textarea id="notes" placeholder="Variante, sabor, formato, etc."></textarea>
+<button class="primary" id="saveProduct">Guardar / actualizar producto</button>
+<div id="productStatus" class="status hidden"></div>
+</div>
+
+<div class="panel">
+<h2>Registrar precio observado</h2>
+<label for="store">Supermercado / tienda *</label>
+<select id="store"><option>Líder</option><option>Jumbo</option><option>Santa Isabel</option><option>Unimarc</option><option>Tottus</option><option>Acuenta</option><option>Mayorista 10</option><option>Otro</option></select>
+<label for="area">Zona de compra</label>
+<select id="area"><option>Concepción</option><option>San Pedro de la Paz</option><option>Talcahuano</option><option>Hualpén</option><option>Chiguayante</option><option>Coronel</option><option>Penco</option><option>Tomé</option><option>Otra comuna</option></select>
+<div class="row">
+<div><label for="branch">Sucursal o referencia</label><input id="branch" placeholder="Ej. Mall / calle"></div>
+<div><label for="priceInput">Precio CLP *</label><input id="priceInput" type="number" min="1" step="1" placeholder="Ej. 1290"></div>
+</div>
+<div class="row">
+<div><label for="promo">Promoción</label><select id="promo"><option value="No indicada">No indicada</option><option>Sin promoción</option><option>Oferta</option><option>Precio socio</option><option>2x / pack</option></select></div>
+<div><label for="source">Origen del precio</label><select id="source"><option>Observado en tienda</option><option>Web de supermercado</option><option>App de supermercado</option><option>Boleta</option></select></div>
+</div>
+<label for="priceDate">Fecha del precio</label><input id="priceDate" type="date">
+<label for="priceUrl">Enlace de referencia (si es online)</label><input id="priceUrl" type="url" placeholder="https://...">
+<button class="primary" id="savePrice">Guardar precio</button>
+<div class="small">Los precios manuales quedan marcados como observados. La fecha permite detectar registros antiguos.</div>
+</div>
+</section>
+
+<section id="tab-compare" class="hidden">
+<div class="panel">
+<h2>Comparar precios</h2>
+<label for="filterProduct">Producto</label><select id="filterProduct"><option value="">Todos los productos</option></select>
+<label for="filterStore">Supermercado</label><select id="filterStore"><option value="">Todos</option><option>Líder</option><option>Jumbo</option><option>Santa Isabel</option><option>Unimarc</option><option>Tottus</option><option>Acuenta</option><option>Mayorista 10</option><option>Otro</option></select>
+<div id="compareResults"></div>
+<div class="notice" style="margin-top:12px">Los resultados solo incluyen precios registrados en este dispositivo. Los enlaces de búsqueda permiten comprobar precios publicados; no representan una integración automática con los inventarios de las cadenas.</div>
+<h3 style="margin-top:16px">Buscar precios online</h3>
+<p class="small">Abre una búsqueda web del producto en cada supermercado. Confirma formato, sucursal, despacho y requisitos de membresía antes de comparar.</p>
+<div id="onlineLinks" class="list-item"></div>
+</div>
+</section>
+
+<section id="tab-history" class="hidden">
+<div class="panel">
+<h2>Productos guardados</h2><div id="productList"></div>
+<button class="secondary" id="exportBtn">Exportar datos (JSON)</button>
+<button class="secondary" id="csvBtn">Exportar precios (CSV)</button>
+<label for="importFile">Importar respaldo JSON</label><input type="file" id="importFile" accept=".json,application/json">
+<button class="danger" id="clearAll">Borrar todos los datos</button>
+</div>
+<div class="panel"><h3>Privacidad y almacenamiento</h3><p class="small">Este prototipo guarda los datos en el almacenamiento local del navegador de este dispositivo. No se crea una cuenta ni se sincronizan automáticamente los datos con otros equipos. Si borras los datos de Safari, podrías perderlos; exporta respaldos periódicamente.</p></div>
+</section>
+<footer>PrecioScan Chile · Prototipo inicial · Verifica siempre el precio final en la tienda.</footer>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const STORE_KEY='precioscan_chile_v1';
+let data={products:[],prices:[]}, currentPhoto='';
+const today=()=>new Date().toISOString().slice(0,10);
+$('priceDate').value=today();
+try{data=JSON.parse(localStorage.getItem(STORE_KEY))||data}catch(e){}
+function persist(){localStorage.setItem(STORE_KEY,JSON.stringify(data));renderAll()}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function money(n){return Number(n).toLocaleString('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0})}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function selectedProduct(){return data.products.find(p=>p.id===$('filterProduct').value)}
+function productForm(){return {name:$('productName').value.trim(),brand:$('brand').value.trim(),size:$('size').value.trim(),category:$('category').value,barcode:$('barcode').value.trim(),notes:$('notes').value.trim(),photo:currentPhoto}}
+function activeProduct(){return window.activeProductId && data.products.find(p=>p.id===window.activeProductId)}
+function resetProductForm(){window.activeProductId=null;$('productName').value='';$('brand').value='';$('size').value='';$('notes').value='';$('barcode').value='';currentPhoto='';$('photoPreviewWrap').classList.add('hidden');$('productStatus').classList.add('hidden')}
+$('saveProduct').onclick=()=>{
+ const p=productForm();if(!p.name){alert('Escribe el nombre del producto.');return}
+ let existing=window.activeProductId?data.products.find(x=>x.id===window.activeProductId):data.products.find(x=>p.barcode&&x.barcode===p.barcode);
+ if(existing){Object.assign(existing,p);window.activeProductId=existing.id}else{p.id=id();data.products.push(p);window.activeProductId=p.id}
+ persist();$('productStatus').textContent='Producto guardado. Ahora puedes registrar uno o varios precios.';$('productStatus').classList.remove('hidden');
+};
+$('savePrice').onclick=()=>{
+ let p=activeProduct();
+ if(!p){const f=productForm();if(!f.name){alert('Primero completa el nombre y guarda el producto.');return}
+ p=data.products.find(x=>f.barcode&&x.barcode===f.barcode);
+ if(!p){f.id=id();data.products.push(f);p=f;window.activeProductId=p.id}
+ }
+ const amount=Number($('priceInput').value);if(!amount||amount<1){alert('Ingresa un precio válido.');return}
+ data.prices.push({id:id(),productId:p.id,store:$('store').value,branch:$('branch').value.trim(),area:$('area').value,price:amount,promo:$('promo').value,source:$('source').value,date:$('priceDate').value||today(),url:$('priceUrl').value.trim()});
+ $('priceInput').value='';$('priceUrl').value='';persist();alert('Precio guardado.');
+};
+$('photoInput').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{currentPhoto=r.result;$('photoPreview').src=currentPhoto;$('photoPreviewWrap').classList.remove('hidden')};r.readAsDataURL(f)};
+$('clearPhoto').onclick=()=>{currentPhoto='';$('photoInput').value='';$('photoPreviewWrap').classList.add('hidden')};
+async function lookupBarcode(){
+ const code=$('barcode').value.trim();if(!code){alert('Escribe o escanea un código de barras.');return}
+ $('scanStatus').textContent='Buscando producto en Open Food Facts…';
+ try{const res=await fetch('https://world.openfoodfacts.org/api/v2/product/'+encodeURIComponent(code)+'.json');if(!res.ok)throw Error('Respuesta de red');const j=await res.json();
+ if(j.status!==1||!j.product){$('scanStatus').textContent='No encontramos ese código. Completa el nombre y la marca manualmente.';return}
+ const x=j.product;$('productName').value=x.product_name_es||x.product_name||x.generic_name_es||x.generic_name||'';
+ $('brand').value=x.brands||'';$('size').value=x.quantity||'';$('category').value='Alimentos';
+ $('scanStatus').textContent='Producto encontrado en Open Food Facts. Revisa los datos: pueden estar incompletos o desactualizados.';
+ }catch(e){$('scanStatus').textContent='No se pudo consultar Open Food Facts. Comprueba la conexión o completa los datos manualmente.'}
+}
+$('lookupBtn').onclick=lookupBarcode;
+let scanner=null;
+$('startScan').onclick=async()=>{
+ $('reader').classList.remove('hidden');$('scanStatus').textContent='Preparando cámara…';
+ try{
+  if(!window.Html5Qrcode){await loadScanner()}
+  scanner=new Html5Qrcode('reader');
+  await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:260,height:130},formatsToSupport:[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.CODE_128]},txt=>{
+   $('barcode').value=txt;$('scanStatus').textContent='Código detectado: '+txt+'. Buscando información…';stopScanner();lookupBarcode();
+  },()=>{});
+  $('startScan').disabled=true;$('stopScan').disabled=false;$('scanStatus').textContent='Apunta la cámara al código de barras.';
+ }catch(e){$('scanStatus').textContent='No se pudo abrir la cámara. Usa Safari con HTTPS, permite el acceso a cámara o escribe el código manualmente.';$('reader').classList.add('hidden')}
+};
+function loadScanner(){return new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)})}
+async function stopScanner(){try{if(scanner){await scanner.stop();scanner.clear();scanner=null}}catch(e){}$('startScan').disabled=false;$('stopScan').disabled=true;$('reader').classList.add('hidden')}
+$('stopScan').onclick=stopScanner;
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));['scan','compare','history'].forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==b.dataset.tab));renderAll()});
+function renderAll(){renderFilters();renderCompare();renderProducts()}
+function renderFilters(){const s=$('filterProduct'),old=s.value;s.innerHTML='<option value="">Todos los productos</option>'+data.products.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}${p.size?' · '+esc(p.size):''}</option>`).join('');if([...s.options].some(o=>o.value===old))s.value=old}
+function renderCompare(){
+ const prod=$('filterProduct').value,store=$('filterStore').value;
+ let rows=data.prices.filter(x=>(!prod||x.productId===prod)&&(!store||x.store===store));
+ rows.sort((a,b)=>a.price-b.price);
+ $('compareResults').innerHTML=rows.length?rows.map((r,i)=>{const p=data.products.find(x=>x.id===r.productId)||{};const unit=(p.size||'').match(/([\d.,]+)\s*(kg|g|l|ml)\b/i);let unitText='';
+ if(unit){let qty=parseFloat(unit[1].replace(',','.'));const u=unit[2].toLowerCase();if(u==='g')qty/=1000;if(u==='ml')qty/=1000;if(qty>0)unitText=` · ${money(r.price/qty)}/${['g','kg'].includes(u)?'kg':'L'}`}
+ return `<div class="price-card"><div class="price-top"><div><div class="pname">${esc(p.name||'Producto eliminado')}</div><div class="meta">${esc(r.store)}${r.branch?' · '+esc(r.branch):''}${r.area?' · '+esc(r.area):''} · ${esc(r.date)}</div></div><div class="price">${money(r.price)}</div></div><div class="meta">${esc(p.brand||'')}${p.size?' · '+esc(p.size):''}${unitText}<br>${esc(r.promo)} · ${esc(r.source)}</div>${r.url?`<p><a href="${esc(r.url)}" target="_blank" rel="noopener">Ver fuente del precio ↗</a></p>`:''}</div>`
+ }).join(''):'<p class="small">Todavía no hay precios para estos filtros. Guarda un producto y registra un precio.</p>';
+ const p=selectedProduct();const q=encodeURIComponent([p?.brand,p?.name,p?.size].filter(Boolean).join(' '));
+ const stores=[['Líder','https://www.lider.cl/supermercado/search?query='+q],['Jumbo','https://www.jumbo.cl/search?query='+q],['Santa Isabel','https://www.santaisabel.cl/search?query='+q],['Unimarc','https://www.unimarc.cl/']];
+ $('onlineLinks').innerHTML=p?stores.map(s=>`<div style="padding:7px 0"><a href="${s[1]}" target="_blank" rel="noopener">${s[0]}: buscar ${esc(p.name)} ↗</a></div>`).join(''):'Selecciona un producto para generar enlaces de búsqueda.';
+}
+function renderProducts(){
+ $('productList').innerHTML=data.products.length?data.products.map(p=>{const count=data.prices.filter(x=>x.productId===p.id).length;return `<div class="list-item"><div class="product-head">${p.photo?`<img class="photo" src="${p.photo}" alt="">`:'<div class="photo" style="display:grid;place-items:center;font-size:27px">🛍️</div>'}<div style="flex:1"><div class="pname">${esc(p.name)}</div><div class="meta">${esc(p.brand)} ${esc(p.size)}${p.barcode?' · '+esc(p.barcode):''}</div><div class="meta">${count} precio(s) registrado(s)</div><button class="secondary" onclick="editProduct('${p.id}')">Editar / registrar precio</button> <button class="danger" onclick="deleteProduct('${p.id}')">Eliminar</button></div></div></div>`}).join(''):'<p class="small">Aún no has guardado productos.</p>'
+}
+window.editProduct=pid=>{const p=data.products.find(x=>x.id===pid);if(!p)return;window.activeProductId=p.id;$('productName').value=p.name;$('brand').value=p.brand||'';$('size').value=p.size||'';$('category').value=p.category||'Alimentos';$('barcode').value=p.barcode||'';$('notes').value=p.notes||'';currentPhoto=p.photo||'';if(currentPhoto){$('photoPreview').src=currentPhoto;$('photoPreviewWrap').classList.remove('hidden')}else $('photoPreviewWrap').classList.add('hidden');document.querySelector('[data-tab="scan"]').click();window.scrollTo({top:0,behavior:'smooth'})}
+window.deleteProduct=pid=>{if(!confirm('¿Eliminar producto y todos sus precios?'))return;data.products=data.products.filter(p=>p.id!==pid);data.prices=data.prices.filter(p=>p.productId!==pid);persist()}
+$('exportBtn').onclick=()=>download('precioscan-respaldo.json',JSON.stringify(data,null,2),'application/json');
+$('csvBtn').onclick=()=>{const head=['producto','marca','contenido','codigo','tienda','sucursal','zona','precio_CLP','promocion','origen','fecha','url'];const lines=[head,...data.prices.map(r=>{const p=data.products.find(x=>x.id===r.productId)||{};return[p.name,p.brand,p.size,p.barcode,r.store,r.branch,r.area||'',r.price,r.promo,r.source,r.date,r.url]})].map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');download('precioscan-precios.csv','\ufeff'+lines,'text/csv;charset=utf-8')}
+function download(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
+$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!Array.isArray(d.products)||!Array.isArray(d.prices))throw Error();if(confirm('¿Importar respaldo? Se reemplazarán los datos actuales.')){data=d;persist();alert('Respaldo importado.')}}catch(err){alert('El archivo no parece ser un respaldo válido de PrecioScan.')}e.target.value=''}
+$('clearAll').onclick=()=>{if(confirm('¿Seguro que quieres borrar todos los productos y precios de este dispositivo?')){data={products:[],prices:[]};persist()}}
+renderAll();
+</script>
+</body>
+</html>
